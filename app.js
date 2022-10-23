@@ -4,7 +4,7 @@ const mongoose = require("mongoose");
 const bodyParser = require("body-parser");
 
 const { PORT = 3000 } = process.env;
-const { notFoundController } = require("./controllers/NotFoundControllers");
+const { notFoundControllers } = require("./controllers/NotFoundControllers");
 
 const app = express();
 
@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 app.use("/users", require("./routes/users"));
 app.use("/cards", require("./routes/cards"));
-app.use("*", notFoundController);
+app.use("*", notFoundControllers);
 
 app.use(express.static(path.join(__dirname, "public")));
 app.listen(PORT, () => {
