@@ -67,15 +67,18 @@ module.exports.updateUser = (req, res) => {
       if (err.statusCode === 404) {
         return res.status(404).send({ message: "Пользователь не найден" });
       }
-      res.status(status).send({ message });
+      res.status(500).send({ message: "Ошибка по умолчанию" });
     });
 };
 
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
   console.log(req.user._id);
-  User.findByIdAndUpdate(req.user._id, { avatar: avatar })
-    .orFail(new NotFound("Пользователь не найден"))
+  User.findByIdAndUpdate(
+    req.user._id,
+    { avatar },
+    { new: true, runValidators: true }
+  )
     .then((users) => {
       if (!users) {
         return res
@@ -85,12 +88,14 @@ module.exports.updateAvatar = (req, res) => {
       res.send({ data: users });
     })
     .catch((err) => {
-      const { status = 500, message = "Ошибка по умолчанию" } = err;
       if (err.name === "ValidationError") {
         return res
           .status(400)
           .send({ message: "Переданы некорректные данные" });
       }
-      res.status(status).send({ message });
+      if (err.statusCode === 404) {
+        return res.status(404).send({ message: "Пользователь не найден" });
+      }
+      res.status(500).send({ message: "Ошибка по умолчанию" });
     });
 };
