@@ -1,11 +1,18 @@
-const User = require("../models/user");
-const NotFound = require("../errors/NotFound");
-const ValidationError = require("../errors/ValidationError");
+const User = require('../models/user');
+const {
+  SUCCESS_DATA_CODE,
+  BAD_DATA_CODE,
+  BAD_DATA_MESSAGE,
+  NOT_FOUND_CODE,
+  NOT_FOUND_ROUTE_MESSAGE,
+  SERVER_ERROR_CODE,
+  SERVER_ERROR_MESSAGE,
+} = require('../utils/constants');
 
 module.exports.getUsers = (req, res) => {
   User.find({})
     .then((users) => res.send({ data: users }))
-    .catch(() => res.status(500).send({ message: "Ошибка по умолчанию" }));
+    .catch(() => res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE }));
 };
 
 module.exports.getUserById = (req, res) => {
@@ -13,18 +20,18 @@ module.exports.getUserById = (req, res) => {
     .then((user) => {
       if (!user) {
         return res
-          .status(404)
-          .send({ message: "Пользователь по указанному id не найден" });
+          .status(NOT_FOUND_CODE)
+          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
       }
-      res.status(200).send(user);
+      return res.status(SUCCESS_DATA_CODE).send(user);
     })
     .catch((err) => {
-      if (err.kind === "ObjectId") {
+      if (err.kind === 'ObjectId') {
         return res
-          .status(400)
-          .send({ message: "Переданы некорректные данные" });
+          .status(BAD_DATA_CODE)
+          .send({ message: BAD_DATA_MESSAGE });
       }
-      res.status(500).send({ message: "Ошибка по умолчанию" });
+      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };
 
@@ -33,69 +40,61 @@ module.exports.createUser = (req, res) => {
   User.create({ name, about, avatar })
     .then((users) => res.send({ data: users }))
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.name === 'ValidationError') {
         return res
-          .status(400)
-          .send({ message: "Переданы некорректные данные" });
+          .status(BAD_DATA_CODE)
+          .send({ message: BAD_DATA_MESSAGE });
       }
-      res.status(500).send({ message: "Ошибка по умолчанию" });
+      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };
 
 module.exports.updateUser = (req, res) => {
   const { name, about } = req.body;
-  console.log(req.user._id);
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .then((users) => {
       if (!users) {
         return res
-          .status(404)
-          .send({ message: "Пользователь по указанному id не найден" });
+          .status(NOT_FOUND_CODE)
+          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
       }
-      res.send({ data: users });
+      return res.send({ data: users });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.name === 'ValidationError') {
         return res
-          .status(400)
-          .send({ message: "Переданы некорректные данные" });
+          .status(BAD_DATA_CODE)
+          .send({ message: BAD_DATA_MESSAGE });
       }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: "Пользователь не найден" });
-      }
-      res.status(500).send({ message: "Ошибка по умолчанию" });
+      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };
 
 module.exports.updateAvatar = (req, res) => {
   const { avatar } = req.body;
-  console.log(req.user._id);
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
-    { new: true, runValidators: true }
+    { new: true, runValidators: true },
   )
     .then((users) => {
       if (!users) {
         return res
-          .status(404)
-          .send({ message: "Пользователь по указанному id не найден" });
+          .status(NOT_FOUND_CODE)
+          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
       }
-      res.send({ data: users });
+      return res.send({ data: users });
     })
     .catch((err) => {
-      if (err.name === "ValidationError") {
+      if (err.name === 'ValidationError') {
         return res
-          .status(400)
-          .send({ message: "Переданы некорректные данные" });
+          .status(BAD_DATA_CODE)
+          .send({ message: BAD_DATA_MESSAGE });
       }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: "Пользователь не найден" });
-      }
-      res.status(500).send({ message: "Ошибка по умолчанию" });
+      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };

@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const cardSchema = new mongoose.Schema({
   name: {
@@ -11,12 +11,13 @@ const cardSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  //owner — ссылка на модель автора карточки, тип ObjectId, обязательное поле;
+
   owner: {
     type: mongoose.Schema.Types.ObjectId,
+    ref: 'user',
     required: true,
   },
-  //likes — список лайкнувших пост пользователей, массив ObjectId, по умолчанию — пустой массив (поле default);
+
   likes: {
     type: [mongoose.Schema.Types.ObjectId],
     default: [],
@@ -27,4 +28,4 @@ const cardSchema = new mongoose.Schema({
   },
 });
 
-module.exports = mongoose.model("card", cardSchema);
+module.exports = mongoose.model('card', cardSchema);

@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "lint": "npx eslint",
+    "lint": "npx eslint .",
     "dev": "nodemon app.js"
   },
   "repository": {
@@ -20,16 +20,13 @@
   },
   "homepage": "https://github.com/KeskilNah/express-mesto-gha#readme",
   "devDependencies": {
-    "@typescript-eslint/eslint-plugin": "^5.40.0",
-    "@typescript-eslint/parser": "^5.40.0",
-    "eslint": "^8.25.0",
-    "eslint-plugin-react": "^7.31.10",
-    "nodemon": "^2.0.20",
-    "eslint-config-air-base": "^0.3.1",
+    "eslint": "^8.26.0",
     "eslint-config-airbnb-base": "^15.0.0",
-    "eslint-plugin-import": "^2.26.0"
+    "eslint-plugin-import": "^2.26.0",
+    "nodemon": "^2.0.20"
   },
   "dependencies": {
+    "body-parser": "^1.20.1",
     "express": "^4.18.2",
     "mongoose": "^6.6.5"
   },
