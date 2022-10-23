@@ -16,7 +16,7 @@ module.exports.getUserById = (req, res) => {
       const { status = 500, message = "Ошибка по умолчанию" } = err;
       if (err.name === "CastError") {
         return res
-          .status(400)
+          .status(404)
           .send({ message: "Переданы некорректные данные" });
       }
       res.status(status).send({ message });
