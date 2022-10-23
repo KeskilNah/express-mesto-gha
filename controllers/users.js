@@ -10,16 +10,21 @@ module.exports.getUsers = (req, res) => {
 
 module.exports.getUserById = (req, res) => {
   User.findById(req.params.userId)
-    .orFail(new NotFound("Пользователь не найден"))
-    .then((users) => res.send({ data: users }))
-    .catch((err) => {
-      const { status = 500, message = "Ошибка по умолчанию" } = err;
-      if (err.name === "CastError") {
+    .then((user) => {
+      if (!user) {
         return res
           .status(404)
+          .send({ messgae: "Пользователь по указанному id не найден" });
+      }
+      res.status(200).send(user);
+    })
+    .catch((err) => {
+      if (err.kind === "ObjectId") {
+        return res
+          .status(400)
           .send({ message: "Переданы некорректные данные" });
       }
-      res.status(status).send({ message });
+      res.status(500).send({ message: "Всё плохо" });
     });
 };
 
