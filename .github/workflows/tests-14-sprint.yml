@@ -18,7 +18,7 @@ jobs:
         with:
           node-version: 14.x
       - name: Get testing lib
-        run: set -eu && git clone --depth 1 https://github.com/KeskilNah/express-mesto-gha.git
+        run: set -eu && git clone --depth 1 https://github.com/Yandex-Practicum/web-autotest-public.git
       - name: Copy Makefile
         run: cp ./web-autotest-public/Makefile ./Makefile
       - name: Installing Dependencies
@@ -40,7 +40,7 @@ jobs:
         with:
           mongodb-version: "4.4"
       - name: Get testing lib
-        run: set -eu && git clone --depth 1 https://github.com/KeskilNah/express-mesto-gha.git
+        run: set -eu && git clone --depth 1 https://github.com/Yandex-Practicum/web-autotest-public.git
       - name: Copy Makefile
         run: cp ./web-autotest-public/Makefile ./Makefile
       - name: Installing Dependencies
