@@ -24,15 +24,17 @@ module.exports.createCard = (req, res) => {
 module.exports.deleteCard = (req, res) => {
   console.log(req.params.cardId);
   Card.findByIdAndRemove(req.params.cardId)
-    .then((cards) => res.send({ data: cards }))
+    .then((card) => {
+      if (!card) {
+        return res.status(404).send({ message: "Карточка не найдена" });
+      }
+      res.send({ data: card });
+    })
     .catch((err) => {
       if (err.name === "CastError") {
         return res
           .status(400)
           .send({ message: "Переданы некорректные данные" });
-      }
-      if (err.statusCode === 404) {
-        return res.status(404).send({ message: "Карточка не найдена" });
       }
       return res.status(500).send({ message: "Ошибка по умолчанию" });
     });
