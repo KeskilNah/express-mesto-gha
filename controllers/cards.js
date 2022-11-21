@@ -8,6 +8,10 @@ const {
   SERVER_ERROR_MESSAGE,
 } = require('../utils/constants');
 
+const BadRequestError = require('../errors/BadRequestError');
+const ForbiddenError = require('../errors/ForbiddenError');
+const NotFoundError = require('../errors/NotFoundError');
+
 module.exports.getCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send({ data: cards }))
@@ -32,21 +36,28 @@ module.exports.createCard = (req, res) => {
     });
 };
 
-module.exports.deleteCard = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCard = (req, res, next) => {
+  const ownerId = req.user._id;
+  console.log(ownerId);
+  console.log(req.params.cardId);
+  Card.findById(req.params.cardId)
+    .orFail(new NotFoundError(`Карточка с id ${req.params.cardId} не найдена`))
     .then((card) => {
-      if (!card) {
-        return res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ROUTE_MESSAGE });
+      if (card) {
+        if (card.owner.toString() === ownerId) {
+          card.delete()
+            .then(() => res.status(200).json({ message: `Карточка с id ${req.params.cardId} удалена` }));
+        } else {
+          throw new ForbiddenError('Это чужая карточка');
+        }
       }
-      return res.send({ data: card });
     })
     .catch((err) => {
       if (err.name === 'CastError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
+        next(new BadRequestError(`${req.params.cardId} неправильный идентификатор`));
+      } else {
+        next(err);
       }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };
 
