@@ -1,6 +1,9 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const validator = require('validator');
 const AuthorizationError = require('../errors/AuthorizationError');
+const BadRequestError = require('../errors/BadRequestError');
+const ExistEmailError = require('../errors/ExistEmail');
 const User = require('../models/user');
 const {
   SUCCESS_DATA_CODE,
@@ -40,21 +43,28 @@ module.exports.getUserById = (req, res) => {
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
+  if (!validator.isEmail(req.body.email)) {
+    res.status(400).send({ message: 'Email не удовлетворяет требованяи валидации' });
+    return;
+  }
+
   bcrypt.hash(req.body.password, 10)
     .then((hash) => {
       req.body.password = hash;
       return User.create(req.body);
     })
-    .then((users) => res.send({ data: users }))
+    .then((users) => res.status(201).send({ data: users }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
+      if (err.code === 11000) {
+        next(new ExistEmailError('Такой email уже зарегистрирован'));
+      } else if (err.name === 'ValidationError') {
+        next(new BadRequestError(BAD_DATA_MESSAGE));
+      } else {
+        next(err);
       }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
-    });
+    })
+    .catch(next);
 };
 
 module.exports.updateUser = (req, res) => {
