@@ -29,6 +29,6 @@ app.use('/users', require('./routes/users'));
 app.use('/cards', require('./routes/cards'));
 
 app.use('*', notFoundControllers);
-// app.use(errorHandler);
+app.use(errorHandler);
 
 app.listen(PORT);

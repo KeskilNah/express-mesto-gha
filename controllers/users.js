@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const AuthorizationError = require('../errors/AuthorizationError');
 const User = require('../models/user');
 const {
   SUCCESS_DATA_CODE,
@@ -106,21 +107,29 @@ module.exports.updateAvatar = (req, res) => {
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
-  return User.findUserByCredentials(email, password)
+  if (!email || !password) {
+    throw new AuthorizationError('Передан неверный логин или пароль1');
+  }
+  return User.findOne({ email }).select('+password')
     .then((user) => {
-      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      res.cookie('jwt', token, {
-        maxAge: 360000,
-        httpOnly: true,
-      });
-      res.status(200).send({ message: 'Авторизация успешна', token }); // не забыть сделать через куки
+      if (!user) {
+        throw new AuthorizationError('Передан неверный логин или пароль2');
+      }
+      return bcrypt.compare(password, user.password);
     })
-    .catch((err) => {
-      console.log(err);
-      res.status(401).send({ message: err.message });
-    });
+    .then((matched) => {
+      if (!matched) {
+        throw new AuthorizationError('Передан неверный логин или пароль3');
+      }
+      return User.findOne({ email })
+        .then((user) => {
+          const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+          return res.status(200).send({ token });
+        });
+    })
+    .catch(next);
 };
 
 module.exports.userInfo = (req, res) => {
