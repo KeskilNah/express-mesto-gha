@@ -38,8 +38,6 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const ownerId = req.user._id;
-  console.log(ownerId);
-  console.log(req.params.cardId);
   Card.findById(req.params.cardId)
     .orFail(new NotFoundError(`Карточка с id ${req.params.cardId} не найдена`))
     .then((card) => {
