@@ -44,17 +44,23 @@ module.exports.getUserById = (req, res) => {
 };
 
 module.exports.createUser = (req, res, next) => {
+  const {
+    name = undefined, about = undefined, avatar = undefined, email, password,
+  } = req.body;
   if (!validator.isEmail(req.body.email)) {
     res.status(400).send({ message: 'Email не удовлетворяет требованяи валидации' });
     return;
   }
 
-  bcrypt.hash(req.body.password, 10)
-    .then((hash) => {
-      req.body.password = hash;
-      return User.create(req.body);
+  bcrypt.hash(password, 10)
+    .then((hash) => User.create({
+      name, about, avatar, email, password: hash,
+    }))
+    .then((user) => {
+      res.send({
+        name: user.name, about: user.about, avatar: user.avatar, email: user.email,
+      });
     })
-    .then(() => res.status(201).send({ message: 'Пользователь создан' }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new ExistEmailError('Такой email уже зарегистрирован'));
