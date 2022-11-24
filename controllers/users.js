@@ -54,7 +54,7 @@ module.exports.createUser = (req, res, next) => {
       req.body.password = hash;
       return User.create(req.body);
     })
-    .then((users) => res.status(201).send({ data: users }))
+    .then(() => res.status(201).send({ message: 'Пользователь создан' }))
     .catch((err) => {
       if (err.code === 11000) {
         next(new ExistEmailError('Такой email уже зарегистрирован'));
