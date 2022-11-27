@@ -1,7 +1,5 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const validator = require('validator');
-const AuthorizationError = require('../errors/AuthorizationError');
 const BadRequestError = require('../errors/BadRequestError');
 const ExistEmailError = require('../errors/ExistEmail');
 const User = require('../models/user');
@@ -13,6 +11,7 @@ const {
   NOT_FOUND_ROUTE_MESSAGE,
   SERVER_ERROR_CODE,
   SERVER_ERROR_MESSAGE,
+  SUCCESS_CREATION_CODE,
 } = require('../utils/constants');
 
 module.exports.getUsers = (req, res) => {
@@ -23,18 +22,16 @@ module.exports.getUsers = (req, res) => {
     .catch(() => res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE }));
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (!user) {
-        return res
-          .status(NOT_FOUND_CODE)
-          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
+        return next();
       }
       return res.status(SUCCESS_DATA_CODE).send(user);
     })
     .catch((err) => {
-      if (err.kind === 'ObjectId') {
+      if (err.name === 'BadRequestError') {
         return res
           .status(BAD_DATA_CODE)
           .send({ message: BAD_DATA_MESSAGE });
@@ -45,21 +42,16 @@ module.exports.getUserById = (req, res) => {
 
 module.exports.createUser = (req, res, next) => {
   const {
-    name = undefined, about = undefined, avatar = undefined, email, password,
+    name, about, avatar, email, password,
   } = req.body;
-  if (!validator.isEmail(req.body.email)) {
-    res.status(400).send({ message: 'Email не удовлетворяет требованяи валидации' });
-    return;
-  }
-
   bcrypt.hash(password, 10)
     .then((hash) => User.create({
       name, about, avatar, email, password: hash,
     }))
-    .then((user) => {
-      res.send({
-        name: user.name, about: user.about, avatar: user.avatar, email: user.email,
-      });
+    .then((document) => {
+      const user = document.toObject();
+      delete user.password;
+      res.status(SUCCESS_CREATION_CODE).send(user);
     })
     .catch((err) => {
       if (err.code === 11000) {
@@ -69,8 +61,7 @@ module.exports.createUser = (req, res, next) => {
       } else {
         next(err);
       }
-    })
-    .catch(next);
+    });
 };
 
 module.exports.updateUser = (req, res) => {
@@ -124,31 +115,15 @@ module.exports.updateAvatar = (req, res) => {
 };
 
 module.exports.login = (req, res, next) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    throw new AuthorizationError('Передан неверный логин или пароль1');
-  }
-  return User.findOne({ email }).select('+password')
+  User.findUserByCredentials(req.body)
     .then((user) => {
-      if (!user) {
-        throw new AuthorizationError('Передан неверный логин или пароль2');
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (!matched) {
-        throw new AuthorizationError('Передан неверный логин или пароль3');
-      }
-      return User.findOne({ email })
-        .then((user) => {
-          const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-          return res.status(200).send({ token });
-        });
+      const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+      return res.status(200).send({ token });
     })
     .catch(next);
 };
 
-module.exports.userInfo = (req, res) => {
+module.exports.userInfo = (req, res, next) => {
   User.findById(
     req.user._id,
   )
@@ -160,12 +135,5 @@ module.exports.userInfo = (req, res) => {
       }
       return res.send({ data: users });
     })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
-      }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
-    });
+    .catch(next);
 };

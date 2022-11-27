@@ -1,4 +1,5 @@
 const SUCCESS_DATA_CODE = 200;
+const SUCCESS_CREATION_CODE = 201;
 const BAD_DATA_CODE = 400;
 const BAD_DATA_MESSAGE = 'Переданы некорректные данные';
 const NOT_FOUND_CODE = 404;
@@ -8,6 +9,7 @@ const SERVER_ERROR_MESSAGE = 'Ошибка по умолчанию';
 
 module.exports = {
   SUCCESS_DATA_CODE,
+  SUCCESS_CREATION_CODE,
   BAD_DATA_CODE,
   BAD_DATA_MESSAGE,
   NOT_FOUND_CODE,

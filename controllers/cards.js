@@ -77,7 +77,7 @@ module.exports.likeCard = (req, res) => {
           .status(BAD_DATA_CODE)
           .send({ message: BAD_DATA_MESSAGE });
       }
-      return res.status(SERVER_ERROR_CODE).send({ mmessage: SERVER_ERROR_MESSAGE });
+      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
     });
 };
 

@@ -1,3 +1,5 @@
+const { NOT_FOUND_CODE, NOT_FOUND_ROUTE_MESSAGE } = require('../utils/constants');
+
 module.exports.notFoundControllers = (req, res) => {
-  res.status(404).send({ message: 'Запрашиваемый ресурс не найден' });
+  res.status(NOT_FOUND_CODE).send({ message: NOT_FOUND_ROUTE_MESSAGE });
 };
