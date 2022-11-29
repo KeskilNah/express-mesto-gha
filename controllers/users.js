@@ -2,42 +2,26 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const BadRequestError = require('../errors/BadRequestError');
 const ExistEmailError = require('../errors/ExistEmail');
+const NotFoundError = require('../errors/NotFoundError');
 const User = require('../models/user');
 const {
   SUCCESS_DATA_CODE,
-  BAD_DATA_CODE,
   BAD_DATA_MESSAGE,
-  NOT_FOUND_CODE,
-  NOT_FOUND_ROUTE_MESSAGE,
-  SERVER_ERROR_CODE,
-  SERVER_ERROR_MESSAGE,
   SUCCESS_CREATION_CODE,
 } = require('../utils/constants');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find({})
     .then((users) => {
       res.send({ data: users });
     })
-    .catch(() => res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE }));
+    .catch(next);
 };
 
 module.exports.getUserById = (req, res, next) => {
-  User.findById(req.params.userId)
-    .then((user) => {
-      if (!user) {
-        return next();
-      }
-      return res.status(SUCCESS_DATA_CODE).send(user);
-    })
-    .catch((err) => {
-      if (err.name === 'BadRequestError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
-      }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
-    });
+  User.findById(req.params.userId).orFail(new NotFoundError(`Пользователь с id ${req.params.userId} не найден`))
+    .then((user) => res.status(SUCCESS_DATA_CODE).send(user))
+    .catch(next);
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -64,61 +48,33 @@ module.exports.createUser = (req, res, next) => {
     });
 };
 
-module.exports.updateUser = (req, res) => {
+module.exports.updateUser = (req, res, next) => {
   const { name, about } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { name, about },
     { new: true, runValidators: true },
-  )
-    .then((users) => {
-      if (!users) {
-        return res
-          .status(NOT_FOUND_CODE)
-          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
-      }
-      return res.send({ data: users });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
-      }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
-    });
+  ).orFail(new NotFoundError('Пользователь не найден'))
+    .then((user) => res.send({ data: user }))
+    .catch(next);
 };
 
-module.exports.updateAvatar = (req, res) => {
+module.exports.updateAvatar = (req, res, next) => {
   const { avatar } = req.body;
   User.findByIdAndUpdate(
     req.user._id,
     { avatar },
     { new: true, runValidators: true },
-  )
-    .then((users) => {
-      if (!users) {
-        return res
-          .status(NOT_FOUND_CODE)
-          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
-      }
-      return res.send({ data: users });
-    })
-    .catch((err) => {
-      if (err.name === 'ValidationError') {
-        return res
-          .status(BAD_DATA_CODE)
-          .send({ message: BAD_DATA_MESSAGE });
-      }
-      return res.status(SERVER_ERROR_CODE).send({ message: SERVER_ERROR_MESSAGE });
-    });
+  ).orFail(new NotFoundError('Пользователь не найден'))
+    .then((user) => res.send({ data: user }))
+    .catch(next);
 };
 
 module.exports.login = (req, res, next) => {
   User.findUserByCredentials(req.body)
     .then((user) => {
       const token = jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
-      return res.status(200).send({ token });
+      return res.status(SUCCESS_DATA_CODE).send({ token });
     })
     .catch(next);
 };
@@ -126,14 +82,7 @@ module.exports.login = (req, res, next) => {
 module.exports.userInfo = (req, res, next) => {
   User.findById(
     req.user._id,
-  )
-    .then((users) => {
-      if (!users) {
-        return res
-          .status(NOT_FOUND_CODE)
-          .send({ message: NOT_FOUND_ROUTE_MESSAGE });
-      }
-      return res.send({ data: users });
-    })
+  ).orFail(new NotFoundError('Пользователь не найден'))
+    .then((user) => res.send({ data: user }))
     .catch(next);
 };

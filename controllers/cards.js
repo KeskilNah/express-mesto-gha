@@ -6,6 +6,7 @@ const {
   NOT_FOUND_ROUTE_MESSAGE,
   SERVER_ERROR_CODE,
   SERVER_ERROR_MESSAGE,
+  SUCCESS_DATA_CODE,
 } = require('../utils/constants');
 
 const BadRequestError = require('../errors/BadRequestError');
@@ -44,7 +45,7 @@ module.exports.deleteCard = (req, res, next) => {
       if (card) {
         if (card.owner.toString() === ownerId) {
           card.delete()
-            .then(() => res.status(200).json({ message: `Карточка с id ${req.params.cardId} удалена` }));
+            .then(() => res.status(SUCCESS_DATA_CODE).json({ message: `Карточка с id ${req.params.cardId} удалена` }));
         } else {
           throw new ForbiddenError('Это чужая карточка');
         }
