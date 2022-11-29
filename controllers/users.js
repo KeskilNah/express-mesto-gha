@@ -21,7 +21,13 @@ module.exports.getUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId).orFail(new NotFoundError(`Пользователь с id ${req.params.userId} не найден`))
     .then((user) => res.status(SUCCESS_DATA_CODE).send(user))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(BAD_DATA_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.createUser = (req, res, next) => {
@@ -56,7 +62,13 @@ module.exports.updateUser = (req, res, next) => {
     { new: true, runValidators: true },
   ).orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(BAD_DATA_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.updateAvatar = (req, res, next) => {
@@ -67,7 +79,13 @@ module.exports.updateAvatar = (req, res, next) => {
     { new: true, runValidators: true },
   ).orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(BAD_DATA_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.login = (req, res, next) => {
@@ -84,5 +102,11 @@ module.exports.userInfo = (req, res, next) => {
     req.user._id,
   ).orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ data: user }))
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'ValidationError') {
+        next(new BadRequestError(BAD_DATA_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };

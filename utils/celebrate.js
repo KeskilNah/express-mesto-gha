@@ -17,7 +17,7 @@ module.exports.updateUserCelebrate = celebrate({
 
 module.exports.updateAvatarCelebrate = celebrate({
   body: Joi.object().keys({
-    avatar: Joi.string().regex(urlPattern),
+    avatar: Joi.string().required().regex(urlPattern),
   }),
 });
 
