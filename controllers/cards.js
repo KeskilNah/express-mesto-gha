@@ -35,7 +35,8 @@ module.exports.deleteCard = (req, res, next) => {
   Card.findById(req.params.cardId).populate('likes').populate('owner')
     .orFail(new NotFoundError(`Карточка с id ${req.params.cardId} не найдена`))
     .then((card) => {
-      if (card.owner.toString() === ownerId) {
+      console.log(card.owner._id);
+      if (card.owner._id.toString() === ownerId) {
         card.delete()
           .then(() => res.status(SUCCESS_DATA_CODE).json({ message: `Карточка с id ${req.params.cardId} удалена` }));
       } else {
