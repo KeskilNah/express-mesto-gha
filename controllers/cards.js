@@ -1,14 +1,15 @@
 const Card = require('../models/card');
 const {
-  SUCCESS_DATA_CODE,
+  SUCCESS_DATA_CODE, CAST_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 const ForbiddenError = require('../errors/ForbiddenError');
 const NotFoundError = require('../errors/NotFoundError');
 const ValidationError = require('../errors/ValidationError');
+const CastError = require('../errors/CastError');
 
 module.exports.getCards = (req, res, next) => {
-  Card.find({}).populate('likes').populate('owner')
+  Card.find({}).populate(['likes', 'owner'])
     .then((cards) => res.send({ data: cards }))
     .catch(next);
 };
@@ -32,10 +33,9 @@ module.exports.createCard = (req, res, next) => {
 
 module.exports.deleteCard = (req, res, next) => {
   const ownerId = req.user._id;
-  Card.findById(req.params.cardId).populate('likes').populate('owner')
+  Card.findById(req.params.cardId)
     .orFail(new NotFoundError(`Карточка с id ${req.params.cardId} не найдена`))
     .then((card) => {
-      console.log(card.owner._id);
       if (card.owner._id.toString() === ownerId) {
         card.delete()
           .then(() => res.status(SUCCESS_DATA_CODE).json({ message: `Карточка с id ${req.params.cardId} удалена` }));
@@ -43,7 +43,13 @@ module.exports.deleteCard = (req, res, next) => {
         throw new ForbiddenError('Это чужая карточка');
       }
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.likeCard = (req, res, next) => {
@@ -56,7 +62,13 @@ module.exports.likeCard = (req, res, next) => {
     .then((card) => {
       res.send({ data: card });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
+      } else {
+        next(err);
+      }
+    });
 };
 
 module.exports.dislikeCard = (req, res, next) => {

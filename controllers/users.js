@@ -1,6 +1,7 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const BadRequestError = require('../errors/BadRequestError');
+const CastError = require('../errors/CastError');
 const ExistEmailError = require('../errors/ExistEmail');
 const NotFoundError = require('../errors/NotFoundError');
 const User = require('../models/user');
@@ -8,6 +9,7 @@ const {
   SUCCESS_DATA_CODE,
   BAD_DATA_MESSAGE,
   SUCCESS_CREATION_CODE,
+  CAST_ERROR_MESSAGE,
 } = require('../utils/constants');
 
 module.exports.getUsers = (req, res, next) => {
@@ -22,8 +24,8 @@ module.exports.getUserById = (req, res, next) => {
   User.findById(req.params.userId).orFail(new NotFoundError(`Пользователь с id ${req.params.userId} не найден`))
     .then((user) => res.status(SUCCESS_DATA_CODE).send(user))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(BAD_DATA_MESSAGE));
+      if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -65,6 +67,8 @@ module.exports.updateUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(BAD_DATA_MESSAGE));
+      } if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -82,6 +86,8 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(BAD_DATA_MESSAGE));
+      } if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -103,8 +109,8 @@ module.exports.userInfo = (req, res, next) => {
   ).orFail(new NotFoundError('Пользователь не найден'))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
-      if (err.name === 'ValidationError') {
-        next(new BadRequestError(BAD_DATA_MESSAGE));
+      if (err.name === 'CastError') {
+        next(new CastError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
