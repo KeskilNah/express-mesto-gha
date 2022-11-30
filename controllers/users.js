@@ -1,7 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const BadRequestError = require('../errors/BadRequestError');
-const CastError = require('../errors/CastError');
 const ExistEmailError = require('../errors/ExistEmail');
 const NotFoundError = require('../errors/NotFoundError');
 const User = require('../models/user');
@@ -25,7 +24,7 @@ module.exports.getUserById = (req, res, next) => {
     .then((user) => res.status(SUCCESS_DATA_CODE).send(user))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new CastError(CAST_ERROR_MESSAGE));
+        next(new BadRequestError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -67,8 +66,8 @@ module.exports.updateUser = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(BAD_DATA_MESSAGE));
-      } if (err.name === 'CastError') {
-        next(new CastError(CAST_ERROR_MESSAGE));
+      } else if (err.name === 'CastError') {
+        next(new BadRequestError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -86,8 +85,8 @@ module.exports.updateAvatar = (req, res, next) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         next(new BadRequestError(BAD_DATA_MESSAGE));
-      } if (err.name === 'CastError') {
-        next(new CastError(CAST_ERROR_MESSAGE));
+      } else if (err.name === 'CastError') {
+        next(new BadRequestError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
@@ -110,7 +109,7 @@ module.exports.userInfo = (req, res, next) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new CastError(CAST_ERROR_MESSAGE));
+        next(new BadRequestError(CAST_ERROR_MESSAGE));
       } else {
         next(err);
       }
